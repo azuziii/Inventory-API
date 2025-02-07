@@ -25,4 +25,11 @@ export class ProductService implements IProduct {
   findOne(options: FindOneOptions<Product>): Promise<Product | null> {
     return this.productRepository.findOne(options);
   }
+
+  async listProducts(): Promise<ProductOutput[]> {
+    const products = await this.productRepository.find();
+    return plainToInstance(ProductOutput, products, {
+      excludeExtraneousValues: true,
+    });
+  }
 }
