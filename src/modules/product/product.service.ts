@@ -47,7 +47,9 @@ export class ProductService implements IProduct {
       },
     });
 
-    return plainToInstance(ProductOutput, product);
+    return plainToInstance(ProductOutput, product, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async updateProduct(input: UpdateProductInput): Promise<Product> {
@@ -64,7 +66,14 @@ export class ProductService implements IProduct {
     }
 
     Object.assign(product, input);
+    const savedProduct = await this.productRepository.save(product);
 
-    return this.productRepository.save(product);
+    return plainToInstance(ProductOutput, savedProduct, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  async deleteProduct(id: string): Promise<void> {
+    await this.productRepository.delete(id);
   }
 }
