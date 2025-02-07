@@ -2,8 +2,8 @@ import { Expose } from 'class-transformer';
 
 export class ProductOutput {
   @Expose()
-  name: string;
+  name!: string;
 
   @Expose()
-  price: string;
+  price!: string;
 }
