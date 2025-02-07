@@ -1,7 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { FindManyOptions, FindOneOptions } from 'typeorm';
-import { CreateProductInput } from './dto/product-input.dto';
+import {
+  CreateProductInput,
+  UpdateProductInput,
+} from './dto/product-input.dto';
 import { ProductOutput } from './dto/product-output.dto';
 import { Product } from './entities/product.entity';
 import { IProduct } from './interfaces/product.interface';
@@ -41,5 +48,23 @@ export class ProductService implements IProduct {
     });
 
     return plainToInstance(ProductOutput, product);
+  }
+
+  async updateProduct(input: UpdateProductInput): Promise<Product> {
+    const { id } = input;
+
+    if (!id) {
+      throw new BadRequestException('Product id is required');
+    }
+
+    const product = await this.productRepository.findOne({ where: { id } });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    Object.assign(product, input);
+
+    return this.productRepository.save(product);
   }
 }
