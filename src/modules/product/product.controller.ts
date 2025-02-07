@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, UsePipes } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  UsePipes,
+} from '@nestjs/common';
 import { CreateProductInput } from './dto/product-input.dto';
 import { ProductOutput } from './dto/product-output.dto';
 import { ProductExistsPipe } from './pipes/product_exists/product_exists.pipe';
@@ -17,5 +25,12 @@ export class ProductController {
   @Get()
   listProducts(): Promise<ProductOutput[]> {
     return this.productService.listProducts();
+  }
+
+  @Get(':id')
+  getProduct(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<ProductOutput | null> {
+    return this.productService.getProduct(id);
   }
 }
