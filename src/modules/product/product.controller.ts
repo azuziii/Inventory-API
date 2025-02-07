@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -42,12 +43,19 @@ export class ProductController {
   updateProductById(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() input: UpdateProductInput,
-  ) {
+  ): Promise<ProductOutput> {
     return this.productService.updateProduct({ ...input, id });
   }
 
   @Patch()
-  updateProductByBody(@Body() input: UpdateProductInput) {
+  updateProductByBody(
+    @Body() input: UpdateProductInput,
+  ): Promise<ProductOutput> {
     return this.productService.updateProduct(input);
+  }
+
+  @Delete(':id')
+  deleteProduct(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    return this.productService.deleteProduct(id);
   }
 }
