@@ -32,4 +32,14 @@ export class ProductService implements IProduct {
       excludeExtraneousValues: true,
     });
   }
+
+  async getProduct(id: string): Promise<ProductOutput | null> {
+    const product = await this.productRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
+    return plainToInstance(ProductOutput, product);
+  }
 }
