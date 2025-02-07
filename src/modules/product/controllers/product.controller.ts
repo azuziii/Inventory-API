@@ -12,10 +12,10 @@ import {
 import {
   CreateProductInput,
   UpdateProductInput,
-} from './dto/product-input.dto';
-import { ProductOutput } from './dto/product-output.dto';
-import { ProductExistsPipe } from './pipes/product_exists/product_exists.pipe';
-import { ProductService } from './product.service';
+} from '../dto/product-input.dto';
+import { ProductOutput } from '../dto/product-output.dto';
+import { ProductExistsPipe } from '../pipes/product_exists/product_exists.pipe';
+import { ProductService } from '../services/product.service';
 
 @Controller('products')
 export class ProductController {

@@ -8,11 +8,11 @@ import { FindManyOptions, FindOneOptions } from 'typeorm';
 import {
   CreateProductInput,
   UpdateProductInput,
-} from './dto/product-input.dto';
-import { ProductOutput } from './dto/product-output.dto';
-import { Product } from './entities/product.entity';
-import { IProduct } from './interfaces/product.interface';
-import { productRepository } from './repositories/product.repository';
+} from '../dto/product-input.dto';
+import { ProductOutput } from '../dto/product-output.dto';
+import { Product } from '../entities/product.entity';
+import { IProduct } from '../interfaces/product.interface';
+import { productRepository } from '../repositories/product.repository';
 
 @Injectable()
 export class ProductService implements IProduct {
