@@ -33,11 +33,14 @@ export class ProductService implements IProduct {
     return this.productRepository.findOne(options);
   }
 
-  async listProducts(): Promise<ProductOutput[]> {
-    const products = await this.productRepository.find();
-    return plainToInstance(ProductOutput, products, {
-      excludeExtraneousValues: true,
-    });
+  async listProducts(): Promise<{ result: ProductOutput[]; count: number }> {
+    const [products, count] = await this.productRepository.findAndCount();
+    return {
+      result: plainToInstance(ProductOutput, products, {
+        excludeExtraneousValues: true,
+      }),
+      count,
+    };
   }
 
   async getProduct(id: string): Promise<ProductOutput | null> {

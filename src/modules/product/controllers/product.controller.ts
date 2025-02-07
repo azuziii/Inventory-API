@@ -40,11 +40,11 @@ export class ProductController {
 
   @Get()
   async listProducts(): Promise<ApiResponse<ProductOutput[]>> {
-    const list = await this.productService.listProducts();
+    const { result, count } = await this.productService.listProducts();
 
     return {
-      data: list,
-      meta: {},
+      data: result,
+      meta: { count },
     };
   }
 
