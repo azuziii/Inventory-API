@@ -17,5 +17,6 @@ import { productRepository } from './repositories/product.repository';
       useExisting: ProductService,
     },
   ],
+  exports: [IProduct],
 })
 export class ProductModule {}
