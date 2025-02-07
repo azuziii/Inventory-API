@@ -9,6 +9,8 @@ import {
   Post,
   UsePipes,
 } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
+import { ApiResponse } from 'src/shared/dto/api-response.dto';
 import {
   CreateProductInput,
   UpdateProductInput,
@@ -23,35 +25,64 @@ export class ProductController {
 
   @Post()
   @UsePipes(ProductExistsPipe)
-  createProduct(@Body() input: CreateProductInput) {
-    return this.productService.createProduct(input);
+  async createProduct(
+    @Body() input: CreateProductInput,
+  ): Promise<ApiResponse<ProductOutput>> {
+    const product = await this.productService.createProduct(input);
+
+    return {
+      data: plainToInstance(ProductOutput, product, {
+        excludeExtraneousValues: true,
+      }),
+      meta: {},
+    };
   }
 
   @Get()
-  listProducts(): Promise<ProductOutput[]> {
-    return this.productService.listProducts();
+  async listProducts(): Promise<ApiResponse<ProductOutput[]>> {
+    const list = await this.productService.listProducts();
+
+    return {
+      data: list,
+      meta: {},
+    };
   }
 
   @Get(':id')
-  getProduct(
+  async getProduct(
     @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<ProductOutput | null> {
-    return this.productService.getProduct(id);
+  ): Promise<ApiResponse<ProductOutput | null>> {
+    const product = await this.productService.getProduct(id);
+
+    return {
+      data: product,
+      meta: {},
+    };
   }
 
   @Patch(':id')
-  updateProductById(
+  async updateProductById(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() input: UpdateProductInput,
-  ): Promise<ProductOutput> {
-    return this.productService.updateProduct({ ...input, id });
+  ): Promise<ApiResponse<ProductOutput>> {
+    const product = await this.productService.updateProduct({ ...input, id });
+
+    return {
+      data: product,
+      meta: {},
+    };
   }
 
   @Patch()
-  updateProductByBody(
+  async updateProductByBody(
     @Body() input: UpdateProductInput,
-  ): Promise<ProductOutput> {
-    return this.productService.updateProduct(input);
+  ): Promise<ApiResponse<ProductOutput>> {
+    const result = await this.productService.updateProduct(input);
+
+    return {
+      data: result,
+      meta: {},
+    };
   }
 
   @Delete(':id')
