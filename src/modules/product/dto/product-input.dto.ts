@@ -4,12 +4,12 @@ import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 export class CreateProductInput {
   @IsNotEmpty()
   @IsString()
-  name: string;
+  name!: string;
 
   @IsOptional()
   @IsNumber()
   @Transform(({ value }) => {
     return String(value);
   })
-  price: string;
+  price?: string;
 }
