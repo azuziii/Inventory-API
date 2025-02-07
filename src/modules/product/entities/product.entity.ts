@@ -8,6 +8,6 @@ export class Product {
   @Column({ type: 'text', nullable: false, unique: true })
   name!: string;
 
-  @Column({ type: 'float', nullable: false, default: '' })
+  @Column({ type: 'float', nullable: false, default: '0' })
   price!: string;
 }
