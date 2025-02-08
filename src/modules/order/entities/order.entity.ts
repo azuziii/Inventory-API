@@ -4,8 +4,10 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { OrderItem } from './order-item.entity';
 
 @Entity('order')
 export class Order {
@@ -21,4 +23,7 @@ export class Order {
   @ManyToOne(() => Customer)
   @JoinColumn()
   customer!: Customer;
+
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.order)
+  orders!: OrderItem[];
 }
