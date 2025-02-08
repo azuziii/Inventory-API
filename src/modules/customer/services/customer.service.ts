@@ -3,13 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
 import { FindManyOptions, FindOneOptions } from 'typeorm';
 import {
   CreateCustomerInput,
   UpdateCustomerInput,
 } from '../dto/customer-input.dto';
-import { CustomerOutput } from '../dto/customer-output.dto';
 import { Customer } from '../entities/customer.entity';
 import { ICustomer } from '../interfaces/customer.interface';
 import { CustomerRepository } from '../repositories/customer.repository';
@@ -18,11 +16,8 @@ import { CustomerRepository } from '../repositories/customer.repository';
 export class CustomerService implements ICustomer {
   constructor(private readonly customerRepository: CustomerRepository) {}
 
-  async createCustomer(customer: CreateCustomerInput) {
-    const savedCustomer = await this.customerRepository.save(customer);
-    return plainToInstance(CustomerOutput, savedCustomer, {
-      excludeExtraneousValues: true,
-    });
+  async createCustomer(customer: CreateCustomerInput): Promise<Customer> {
+    return this.customerRepository.save(customer);
   }
 
   find(options?: FindManyOptions<Customer>): Promise<Customer[]> {
@@ -33,17 +28,11 @@ export class CustomerService implements ICustomer {
     return this.customerRepository.findOne(options);
   }
 
-  async listCustomers(): Promise<{ result: CustomerOutput[]; count: number }> {
-    const [customers, count] = await this.customerRepository.findAndCount();
-    return {
-      result: plainToInstance(CustomerOutput, customers, {
-        excludeExtraneousValues: true,
-      }),
-      count,
-    };
+  listCustomers(): Promise<[Customer[], number]> {
+    return this.customerRepository.findAndCount();
   }
 
-  async getCustomer(id: string): Promise<CustomerOutput | null> {
+  async getCustomer(id: string): Promise<Customer | null> {
     const customer = await this.customerRepository.findOne({
       where: {
         id,
@@ -54,18 +43,10 @@ export class CustomerService implements ICustomer {
       throw new NotFoundException('Customer not found');
     }
 
-    return plainToInstance(CustomerOutput, customer, {
-      excludeExtraneousValues: true,
-    });
+    return customer;
   }
 
   async updateCustomer(input: UpdateCustomerInput): Promise<Customer> {
-    const isEmpty = Object.keys(input).length === 0;
-
-    if (isEmpty) {
-      throw new BadRequestException('No fields provided for update');
-    }
-
     const { id } = input;
 
     if (!id) {
@@ -78,12 +59,16 @@ export class CustomerService implements ICustomer {
       throw new NotFoundException('Customer not found');
     }
 
+    const isEmpty = Object.keys(input).length === 1;
+
+    if (isEmpty) {
+      throw new BadRequestException('No fields provided for update');
+    }
+
     Object.assign(customer, input);
     const savedCustomer = await this.customerRepository.save(customer);
 
-    return plainToInstance(CustomerOutput, savedCustomer, {
-      excludeExtraneousValues: true,
-    });
+    return savedCustomer;
   }
 
   async deleteCustomer(id: string): Promise<void> {
