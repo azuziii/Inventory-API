@@ -10,10 +10,12 @@ import { IProduct } from '../../interfaces/product.interface';
 
 @Injectable()
 export class ProductExistsPipe implements PipeTransform {
-  constructor(@Inject(IProduct) private readonly userService: IProduct) {}
+  constructor(@Inject(IProduct) private readonly productService: IProduct) {}
 
   async transform(product: CreateProductInput, metadata: ArgumentMetadata) {
-    const isProductExist = await this.userService.findOne({
+    if (!product.name) return product;
+
+    const isProductExist = await this.productService.findOne({
       where: { name: product.name },
     });
 
