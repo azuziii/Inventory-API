@@ -47,12 +47,6 @@ export class ProductService implements IProduct {
   }
 
   async updateProduct(input: UpdateProductInput): Promise<Product> {
-    const isEmpty = Object.keys(input).length === 0;
-
-    if (isEmpty) {
-      throw new BadRequestException('No fields provided for update');
-    }
-
     const { id } = input;
 
     if (!id) {
@@ -63,6 +57,12 @@ export class ProductService implements IProduct {
 
     if (!product) {
       throw new NotFoundException('Product not found');
+    }
+
+    const isEmpty = Object.keys(input).length === 1;
+
+    if (isEmpty) {
+      throw new BadRequestException('No fields provided for update');
     }
 
     Object.assign(product, input);
