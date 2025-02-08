@@ -7,7 +7,6 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  UsePipes,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { ApiResponse } from 'src/shared/dto/api-response.dto';
@@ -24,9 +23,8 @@ export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Post()
-  @UsePipes(ProductExistsPipe)
   async createProduct(
-    @Body() input: CreateProductInput,
+    @Body(ProductExistsPipe) input: CreateProductInput,
   ): Promise<ApiResponse<ProductOutput>> {
     const product = await this.productService.createProduct(input);
 
@@ -40,10 +38,12 @@ export class ProductController {
 
   @Get()
   async listProducts(): Promise<ApiResponse<ProductOutput[]>> {
-    const { result, count } = await this.productService.listProducts();
+    const [products, count] = await this.productService.listProducts();
 
     return {
-      data: result,
+      data: plainToInstance(ProductOutput, products, {
+        excludeExtraneousValues: true,
+      }),
       meta: { count },
     };
   }
@@ -55,7 +55,9 @@ export class ProductController {
     const product = await this.productService.getProduct(id);
 
     return {
-      data: product,
+      data: plainToInstance(ProductOutput, product, {
+        excludeExtraneousValues: true,
+      }),
       meta: {},
     };
   }
@@ -63,24 +65,28 @@ export class ProductController {
   @Patch(':id')
   async updateProductById(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() input: UpdateProductInput,
+    @Body(ProductExistsPipe) input: UpdateProductInput,
   ): Promise<ApiResponse<ProductOutput>> {
     const product = await this.productService.updateProduct({ ...input, id });
 
     return {
-      data: product,
+      data: plainToInstance(ProductOutput, product, {
+        excludeExtraneousValues: true,
+      }),
       meta: {},
     };
   }
 
   @Patch()
   async updateProductByBody(
-    @Body() input: UpdateProductInput,
+    @Body(ProductExistsPipe) input: UpdateProductInput,
   ): Promise<ApiResponse<ProductOutput>> {
-    const result = await this.productService.updateProduct(input);
+    const product = await this.productService.updateProduct(input);
 
     return {
-      data: result,
+      data: plainToInstance(ProductOutput, product, {
+        excludeExtraneousValues: true,
+      }),
       meta: {},
     };
   }
