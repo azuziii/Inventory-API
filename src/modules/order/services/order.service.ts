@@ -12,7 +12,7 @@ import { OrderRepository } from '../repositories/order.repository';
 export class OrderService {
   constructor(private readonly orderRepository: OrderRepository) {}
 
-  async createOrder(order: CreateOrderInput): Promise<Order> {
+  createOrder(order: CreateOrderInput): Promise<Order> {
     console.log(order);
     return this.orderRepository.save(order);
   }
