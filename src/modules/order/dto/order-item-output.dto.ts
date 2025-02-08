@@ -1,0 +1,21 @@
+import { Expose, Type } from 'class-transformer';
+import { ProductOutput } from 'src/modules/product/dto/product-output.dto';
+
+export class OrderItemOutput {
+  @Expose()
+  id!: string;
+
+  @Expose()
+  isDone!: boolean;
+
+  @Expose()
+  quantity!: number;
+
+  @Expose()
+  remaining!: number;
+
+  @Expose()
+  @Type(() => ProductOutput)
+  //   @ValidateNested({ each: true })
+  product!: ProductOutput;
+}
