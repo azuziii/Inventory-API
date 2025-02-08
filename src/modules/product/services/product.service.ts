@@ -3,13 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
 import { FindManyOptions, FindOneOptions } from 'typeorm';
 import {
   CreateProductInput,
   UpdateProductInput,
 } from '../dto/product-input.dto';
-import { ProductOutput } from '../dto/product-output.dto';
 import { Product } from '../entities/product.entity';
 import { IProduct } from '../interfaces/product.interface';
 import { productRepository } from '../repositories/product.repository';
@@ -18,11 +16,8 @@ import { productRepository } from '../repositories/product.repository';
 export class ProductService implements IProduct {
   constructor(private readonly productRepository: productRepository) {}
 
-  async createProduct(product: CreateProductInput) {
-    const savedProduct = await this.productRepository.save(product);
-    return plainToInstance(ProductOutput, savedProduct, {
-      excludeExtraneousValues: true,
-    });
+  createProduct(product: CreateProductInput): Promise<Product> {
+    return this.productRepository.save(product);
   }
 
   find(options?: FindManyOptions<Product>): Promise<Product[]> {
@@ -33,26 +28,22 @@ export class ProductService implements IProduct {
     return this.productRepository.findOne(options);
   }
 
-  async listProducts(): Promise<{ result: ProductOutput[]; count: number }> {
-    const [products, count] = await this.productRepository.findAndCount();
-    return {
-      result: plainToInstance(ProductOutput, products, {
-        excludeExtraneousValues: true,
-      }),
-      count,
-    };
+  listProducts(): Promise<[Product[], number]> {
+    return this.productRepository.findAndCount();
   }
 
-  async getProduct(id: string): Promise<ProductOutput | null> {
+  async getProduct(id: string): Promise<Product | null> {
     const product = await this.productRepository.findOne({
       where: {
         id,
       },
     });
 
-    return plainToInstance(ProductOutput, product, {
-      excludeExtraneousValues: true,
-    });
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    return product;
   }
 
   async updateProduct(input: UpdateProductInput): Promise<Product> {
@@ -77,9 +68,7 @@ export class ProductService implements IProduct {
     Object.assign(product, input);
     const savedProduct = await this.productRepository.save(product);
 
-    return plainToInstance(ProductOutput, savedProduct, {
-      excludeExtraneousValues: true,
-    });
+    return savedProduct;
   }
 
   async deleteProduct(id: string): Promise<void> {
