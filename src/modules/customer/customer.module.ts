@@ -17,5 +17,6 @@ import { CustomerService } from './services/customer.service';
       useExisting: CustomerService,
     },
   ],
+  exports: [ICustomer],
 })
 export class CustomerModule {}
