@@ -1,6 +1,8 @@
 import { Expose } from 'class-transformer';
 
 export class ProductOutput {
+  #nominal = true;
+
   @Expose()
   id!: string;
 
