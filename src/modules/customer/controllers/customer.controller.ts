@@ -7,7 +7,6 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  UsePipes,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { ApiResponse } from 'src/shared/dto/api-response.dto';
@@ -24,9 +23,8 @@ export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
 
   @Post()
-  @UsePipes(CustomerExistsPipe)
   async createCustomer(
-    @Body() input: CreateCustomerInput,
+    @Body(CustomerExistsPipe) input: CreateCustomerInput,
   ): Promise<ApiResponse<CustomerOutput>> {
     const customer = await this.customerService.createCustomer(input);
 
@@ -40,10 +38,12 @@ export class CustomerController {
 
   @Get()
   async listCustomers(): Promise<ApiResponse<CustomerOutput[]>> {
-    const { result, count } = await this.customerService.listCustomers();
+    const [customers, count] = await this.customerService.listCustomers();
 
     return {
-      data: result,
+      data: plainToInstance(CustomerOutput, customers, {
+        excludeExtraneousValues: true,
+      }),
       meta: { count },
     };
   }
@@ -55,7 +55,9 @@ export class CustomerController {
     const customer = await this.customerService.getCustomer(id);
 
     return {
-      data: customer,
+      data: plainToInstance(CustomerOutput, customer, {
+        excludeExtraneousValues: true,
+      }),
       meta: {},
     };
   }
@@ -63,7 +65,7 @@ export class CustomerController {
   @Patch(':id')
   async updateCustomerById(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() input: UpdateCustomerInput,
+    @Body(CustomerExistsPipe) input: UpdateCustomerInput,
   ): Promise<ApiResponse<CustomerOutput>> {
     const customer = await this.customerService.updateCustomer({
       ...input,
@@ -71,19 +73,23 @@ export class CustomerController {
     });
 
     return {
-      data: customer,
+      data: plainToInstance(CustomerOutput, customer, {
+        excludeExtraneousValues: true,
+      }),
       meta: {},
     };
   }
 
   @Patch()
   async updateCustomerByBody(
-    @Body() input: UpdateCustomerInput,
+    @Body(CustomerExistsPipe) input: UpdateCustomerInput,
   ): Promise<ApiResponse<CustomerOutput>> {
-    const result = await this.customerService.updateCustomer(input);
+    const customer = await this.customerService.updateCustomer(input);
 
     return {
-      data: result,
+      data: plainToInstance(CustomerOutput, customer, {
+        excludeExtraneousValues: true,
+      }),
       meta: {},
     };
   }
