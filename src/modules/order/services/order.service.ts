@@ -29,6 +29,7 @@ export class OrderService {
     return this.orderRepository.findAndCount({
       relations: {
         customer: true,
+        orders: true,
       },
     });
   }
