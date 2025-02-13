@@ -2,7 +2,7 @@ import { PartialType } from '@nestjs/mapped-types';
 import { Transform } from 'class-transformer';
 import {
   IsNotEmpty,
-  IsNumber,
+  IsNumberString,
   IsOptional,
   IsString,
   IsUUID,
@@ -14,10 +14,8 @@ export class CreateProductInput {
   name!: string;
 
   @IsOptional()
-  @IsNumber()
-  @Transform(({ value }) => {
-    return String(value);
-  })
+  @Transform(({ value }) => String(value))
+  @IsNumberString()
   price?: string;
 }
 
