@@ -19,7 +19,7 @@ export class OrderItem {
   @Column({ type: 'int', default: 0 })
   quantity!: number;
 
-  @ManyToOne(() => Product)
+  @ManyToOne(() => Product, { eager: true })
   @JoinColumn()
   product!: Product;
 
