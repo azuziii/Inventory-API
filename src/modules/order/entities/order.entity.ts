@@ -20,7 +20,7 @@ export class Order {
   @Column({ type: 'text', unique: true, nullable: false })
   cdn!: string;
 
-  @ManyToOne(() => Customer)
+  @ManyToOne(() => Customer, { eager: true })
   @JoinColumn()
   customer!: Customer;
 
