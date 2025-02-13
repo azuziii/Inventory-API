@@ -24,5 +24,7 @@ export class CustomerExistsPipe implements PipeTransform {
         `Customer with name '${customer.name}' already exists`,
       );
     }
+
+    return customer;
   }
 }
