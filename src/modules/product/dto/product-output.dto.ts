@@ -11,4 +11,7 @@ export class ProductOutput {
 
   @Expose()
   price!: string;
+
+  @Expose()
+  errors!: any[];
 }
