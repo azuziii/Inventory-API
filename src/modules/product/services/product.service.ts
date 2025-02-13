@@ -28,8 +28,14 @@ export class ProductService implements IProduct {
     return this.productRepository.findOne(options);
   }
 
-  listProducts(): Promise<[Product[], number]> {
-    return this.productRepository.findAndCount();
+  async listProducts(): Promise<[Product[], number]> {
+    const [products, count] = await this.productRepository.findAndCount({
+      order: {
+        created_at: 'asc',
+      },
+    });
+
+    return [products.map((product) => this.addErrorsToProduct(product)), count];
   }
 
   async getProduct(id: string): Promise<Product | null> {
@@ -43,7 +49,7 @@ export class ProductService implements IProduct {
       throw new NotFoundException('Product not found');
     }
 
-    return product;
+    return this.addErrorsToProduct(product);
   }
 
   async updateProduct(input: UpdateProductInput): Promise<Product> {
@@ -73,5 +79,21 @@ export class ProductService implements IProduct {
 
   async deleteProduct(id: string): Promise<void> {
     await this.productRepository.delete(id);
+  }
+
+  private addErrorsToProduct(product: Product) {
+    const errors: string[] = [];
+
+    const p: any = product;
+
+    // Check if the price is 0 and add an error
+    if (p.price == '0') {
+      errors.push('Price is set to 0');
+    }
+
+    // Assign the errors dynamically to the product
+    p.errors = errors;
+    console.log(p);
+    return p;
   }
 }
