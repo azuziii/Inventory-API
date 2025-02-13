@@ -14,4 +14,8 @@ export class OrderItemService implements IOrderItem {
     console.log(2);
     return this.orderItemRepository.save(input);
   }
+
+  async deleteOrder(id: string): Promise<void> {
+    await this.orderItemRepository.delete(id);
+  }
 }
