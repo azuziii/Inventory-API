@@ -13,7 +13,6 @@ export class OrderService {
   constructor(private readonly orderRepository: OrderRepository) {}
 
   createOrder(order: CreateOrderInput): Promise<Order> {
-    console.log(order);
     return this.orderRepository.save(order);
   }
 
@@ -41,6 +40,7 @@ export class OrderService {
       },
       relations: {
         customer: true,
+        orders: true,
       },
     });
 
@@ -51,7 +51,7 @@ export class OrderService {
     return order;
   }
 
-  async updateOrder(input: UpdateOrderInput): Promise<Order> {
+  async updateOrder(input: UpdateOrderInput): Promise<Order | null> {
     const { id } = input;
 
     if (!id) {
@@ -67,7 +67,7 @@ export class OrderService {
     const isEmpty = Object.keys(input).length === 1;
 
     if (isEmpty) {
-      throw new BadRequestException('No fields provided to update');
+      return this.orderRepository.findOne({ where: { id } });
     }
 
     Object.assign(order, input);
