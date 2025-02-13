@@ -16,6 +16,5 @@ export class OrderItemOutput {
 
   @Expose()
   @Type(() => ProductOutput)
-  //   @ValidateNested({ each: true })
   product!: ProductOutput;
 }
