@@ -29,13 +29,16 @@ export class ProductService implements IProduct {
   }
 
   async listProducts(): Promise<[Product[], number]> {
+    // const result = await this.productRepository.findAndCount({
     const [products, count] = await this.productRepository.findAndCount({
       order: {
         created_at: 'asc',
       },
     });
 
+    // Temporary
     return [products.map((product) => this.addErrorsToProduct(product)), count];
+    // return result;
   }
 
   async getProduct(id: string): Promise<Product | null> {
@@ -81,17 +84,16 @@ export class ProductService implements IProduct {
     await this.productRepository.delete(id);
   }
 
+  // Temporary
   private addErrorsToProduct(product: Product) {
     const errors: string[] = [];
 
     const p: any = product;
 
-    // Check if the price is 0 and add an error
     if (p.price == '0') {
       errors.push('Price is set to 0');
     }
 
-    // Assign the errors dynamically to the product
     p.errors = errors;
     return p;
   }
