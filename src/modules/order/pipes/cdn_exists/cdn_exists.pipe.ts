@@ -20,18 +20,17 @@ export class OrderCdnExistsPipe implements PipeTransform {
 
     let order = null;
 
-    if ('id' in input) {
-      order = await this.orderService.findOne({ where: { id: input.id } });
-      if (order) {
-        if (order.cdn == input.cdn) {
-          return input;
-        }
-      }
-    }
-
     const isOrderCdnExist = await this.orderService.findOne({
       where: { cdn: input.cdn },
     });
+
+    if (
+      input instanceof UpdateOrderInput &&
+      isOrderCdnExist &&
+      isOrderCdnExist.id == input.id
+    ) {
+      return input;
+    }
 
     if (isOrderCdnExist) {
       throw new BadRequestException(
