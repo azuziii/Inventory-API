@@ -93,7 +93,6 @@ export class ProductService implements IProduct {
 
     // Assign the errors dynamically to the product
     p.errors = errors;
-    console.log(p);
     return p;
   }
 }
