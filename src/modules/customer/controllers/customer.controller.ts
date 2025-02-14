@@ -16,6 +16,7 @@ import {
 } from '../dto/customer-input.dto';
 import { CustomerOutput } from '../dto/customer-output.dto';
 import { CustomerExistsPipe } from '../pipes/customer_exists/customer_exists.pipe';
+import { CustomerIceExistsPipe } from '../pipes/ice_exists/ice_exists.pipe';
 import { CustomerService } from '../services/customer.service';
 
 @Controller('customers')
@@ -24,7 +25,7 @@ export class CustomerController {
 
   @Post()
   async createCustomer(
-    @Body(CustomerExistsPipe) input: CreateCustomerInput,
+    @Body(CustomerExistsPipe, CustomerIceExistsPipe) input: CreateCustomerInput,
   ): Promise<ApiResponse<CustomerOutput>> {
     const customer = await this.customerService.createCustomer(input);
 
@@ -65,7 +66,7 @@ export class CustomerController {
   @Patch(':id')
   async updateCustomerById(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body(CustomerExistsPipe) input: UpdateCustomerInput,
+    @Body(CustomerExistsPipe, CustomerIceExistsPipe) input: UpdateCustomerInput,
   ): Promise<ApiResponse<CustomerOutput>> {
     const customer = await this.customerService.updateCustomer({
       ...input,
@@ -82,7 +83,7 @@ export class CustomerController {
 
   @Patch()
   async updateCustomerByBody(
-    @Body(CustomerExistsPipe) input: UpdateCustomerInput,
+    @Body(CustomerExistsPipe, CustomerIceExistsPipe) input: UpdateCustomerInput,
   ): Promise<ApiResponse<CustomerOutput>> {
     const customer = await this.customerService.updateCustomer(input);
 
