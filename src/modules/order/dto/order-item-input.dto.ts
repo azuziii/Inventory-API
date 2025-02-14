@@ -8,7 +8,7 @@ export class CreateOrderItemInput {
   @IsNotEmpty()
   product!: Product;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   @Transform(({ value }) => {
     return Number(value);
