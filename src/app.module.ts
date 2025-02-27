@@ -7,6 +7,7 @@ import { CustomerModule } from './modules/customer/customer.module';
 import { OrderModule } from './modules/order/order.module';
 import { ProductModule } from './modules/product/product.module';
 import { ShipmentModule } from './modules/shipment/shipment.module';
+import { ActivityLogModule } from './modules/activity_log/activity_log.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ShipmentModule } from './modules/shipment/shipment.module';
     CustomerModule,
     OrderModule,
     ShipmentModule,
+    ActivityLogModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -5,6 +5,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ActivityType } from 'src/modules/activity_log/enum/activity-types.enum';
+import { IActivityLog } from 'src/modules/activity_log/interface/activity-log.interface';
 import { ICustomer } from 'src/modules/customer/interfaces/customer.interface';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import {
@@ -22,10 +24,20 @@ export class OrderService {
     private readonly orderRepository: Repository<Order>,
     @Inject(ICustomer) private readonly customerService: ICustomer,
     @Inject(IOrderItem) private readonly orderItemService: IOrderItem,
+    @Inject(IActivityLog) private readonly activityLogService: IActivityLog,
   ) {}
 
-  createOrder(order: CreateOrderInput): Promise<Order> {
-    return this.orderRepository.save(order);
+  async createOrder(order: CreateOrderInput): Promise<Order> {
+    const savedOrder = await this.orderRepository.save(order);
+
+    await this.activityLogService.log({
+      entity_id: savedOrder.id,
+      new_data: JSON.stringify(savedOrder),
+      table_name: this.orderRepository.metadata.name,
+      type: ActivityType.Created,
+    });
+
+    return savedOrder;
   }
 
   async bulkCreate(shipments: CreateOrderInputBulk[]) {
@@ -110,13 +122,29 @@ export class OrderService {
       return this.orderRepository.findOne({ where: { id } });
     }
 
-    Object.assign(order, input);
-    const savedOrder = await this.orderRepository.save(order);
+    const savedOrder = await this.orderRepository.save({ ...order, ...input });
+
+    await this.activityLogService.log({
+      entity_id: savedOrder.id,
+      old_data: JSON.stringify(order),
+      new_data: JSON.stringify(savedOrder),
+      table_name: this.orderRepository.metadata.name,
+      type: ActivityType.Updated,
+    });
 
     return savedOrder;
   }
 
   async deleteOrder(id: string): Promise<void> {
+    const order = await this.orderRepository.findOne({ where: { id } });
+
+    await this.activityLogService.log({
+      entity_id: id,
+      old_data: JSON.stringify(order || {}),
+      table_name: this.orderRepository.metadata.name,
+      type: ActivityType.Deleted,
+    });
+
     await this.orderRepository.delete(id);
   }
 }

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ActivityLogModule } from '../activity_log/activity_log.module';
 import { CustomerModule } from '../customer/customer.module';
 import { OrderModule } from '../order/order.module';
 import { ProductModule } from '../product/product.module';
@@ -18,6 +19,7 @@ import { ShipmentService } from './services/shipment.service';
     CustomerModule,
     ProductModule,
     OrderModule,
+    ActivityLogModule,
   ],
   controllers: [ShipmentController, ShipmentItemController],
   providers: [

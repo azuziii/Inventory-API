@@ -1,5 +1,7 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ActivityType } from 'src/modules/activity_log/enum/activity-types.enum';
+import { IActivityLog } from 'src/modules/activity_log/interface/activity-log.interface';
 import { IProduct } from 'src/modules/product/interfaces/product.interface';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { UpdateOrderInput } from '../dto/order-input.dto';
@@ -15,6 +17,7 @@ export class OrderItemService implements IOrderItem {
     private readonly orderItemRepository: Repository<OrderItem>,
     @Inject(IProduct) private readonly productService: IProduct,
     @Inject(forwardRef(() => IOrder)) private readonly orderService: IOrder,
+    @Inject(IActivityLog) private readonly activityLogService: IActivityLog,
   ) {}
 
   findOne(options: FindOneOptions<OrderItem>): Promise<OrderItem | null> {
@@ -50,12 +53,35 @@ export class OrderItemService implements IOrderItem {
     return this.orderItemRepository.find(options);
   }
 
-  createOrderItem(input: CreateOrderItemInput): Promise<OrderItem> {
-    return this.orderItemRepository.save(input);
+  async createOrderItem(input: CreateOrderItemInput): Promise<OrderItem> {
+    const savedItem = await this.orderItemRepository.save(input);
+
+    await this.activityLogService.log({
+      entity_id: savedItem.id,
+      new_data: JSON.stringify(savedItem),
+      table_name: this.orderItemRepository.metadata.name,
+      type: ActivityType.ItemCreated,
+    });
+
+    return savedItem;
   }
 
-  editOrderItem(input: UpdateOrderInput): Promise<OrderItem> {
-    return this.orderItemRepository.save(input);
+  async editOrderItem(input: UpdateOrderInput): Promise<OrderItem> {
+    const orderItem = await this.orderItemRepository.findOne({
+      where: { id: input.id! },
+    });
+
+    const savedItem = await this.orderItemRepository.save(input);
+
+    await this.activityLogService.log({
+      entity_id: savedItem.id,
+      old_data: JSON.stringify(orderItem),
+      new_data: JSON.stringify(savedItem),
+      table_name: this.orderItemRepository.metadata.name,
+      type: ActivityType.Updated,
+    });
+
+    return savedItem;
   }
 
   async updateQuantity(
@@ -63,7 +89,6 @@ export class OrderItemService implements IOrderItem {
     productId: string,
     quantity: number,
   ): Promise<any> {
-    console.log(cdn, productId, quantity);
     return this.orderItemRepository.manager.transaction(
       async (transactionalEntityManager) => {
         const orderItem = await transactionalEntityManager.findOne(OrderItem, {
@@ -82,15 +107,32 @@ export class OrderItemService implements IOrderItem {
           return;
         }
 
-        await transactionalEntityManager.save(OrderItem, {
+        const savedItem = await transactionalEntityManager.save(OrderItem, {
           ...orderItem,
           quantity_left: orderItem.quantity_left + quantity,
+        });
+
+        await this.activityLogService.log({
+          entity_id: savedItem.id,
+          old_data: JSON.stringify(orderItem),
+          new_data: JSON.stringify(savedItem),
+          table_name: this.orderItemRepository.metadata.name,
+          type: ActivityType.Auto_update,
         });
       },
     );
   }
 
   async deleteOrder(id: string): Promise<void> {
+    const orderItem = await this.orderItemRepository.findOne({ where: { id } });
+
+    await this.activityLogService.log({
+      entity_id: id,
+      old_data: JSON.stringify(orderItem || {}),
+      table_name: this.orderItemRepository.metadata.name,
+      type: ActivityType.Deleted,
+    });
+
     await this.orderItemRepository.delete(id);
   }
 }

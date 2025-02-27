@@ -5,6 +5,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ActivityType } from 'src/modules/activity_log/enum/activity-types.enum';
+import { IActivityLog } from 'src/modules/activity_log/interface/activity-log.interface';
 import { ICustomer } from 'src/modules/customer/interfaces/customer.interface';
 import { IOrderItem } from 'src/modules/order/interfaces/order-item.interface';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
@@ -26,10 +28,20 @@ export class ShipmentService implements IShipment {
     @Inject(IShipmentItem) private readonly shipmentItemService: IShipmentItem,
     @Inject(IOrderItem) private readonly orderItemService: IOrderItem,
     @Inject(ICustomer) private readonly customerService: ICustomer,
+    @Inject(IActivityLog) private readonly activityLogService: IActivityLog,
   ) {}
 
-  createShipment(shipment: CreateShipmentInput): Promise<Shipment> {
-    return this.shipmentRepository.save(shipment);
+  async createShipment(shipment: CreateShipmentInput): Promise<Shipment> {
+    const savedShipment = await this.shipmentRepository.save(shipment);
+
+    await this.activityLogService.log({
+      entity_id: savedShipment.id,
+      new_data: JSON.stringify(savedShipment),
+      table_name: this.shipmentRepository.metadata.name,
+      type: ActivityType.Created,
+    });
+
+    return savedShipment;
   }
 
   async bulkCreate(shipments: CreateShipmentInputBulk[]) {
@@ -116,13 +128,32 @@ export class ShipmentService implements IShipment {
       return this.shipmentRepository.findOne({ where: { id } });
     }
 
-    Object.assign(shipment, input);
-    const savedShipment = await this.shipmentRepository.save(shipment);
+    const savedShipment = await this.shipmentRepository.save({
+      ...shipment,
+      ...input,
+    });
+
+    await this.activityLogService.log({
+      entity_id: savedShipment.id,
+      old_data: JSON.stringify(shipment),
+      new_data: JSON.stringify(savedShipment),
+      table_name: this.shipmentRepository.metadata.name,
+      type: ActivityType.Updated,
+    });
 
     return savedShipment;
   }
 
   async deleteShipment(id: string): Promise<void> {
+    const shipment = await this.shipmentRepository.findOne({ where: { id } });
+
+    await this.activityLogService.log({
+      entity_id: id,
+      old_data: JSON.stringify(shipment || {}),
+      table_name: this.shipmentRepository.metadata.name,
+      type: ActivityType.Deleted,
+    });
+
     await this.shipmentRepository.delete(id);
   }
 

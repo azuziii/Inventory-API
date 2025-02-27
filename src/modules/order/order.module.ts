@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ActivityLogModule } from '../activity_log/activity_log.module';
 import { CustomerModule } from '../customer/customer.module';
 import { ProductModule } from '../product/product.module';
 import { OrderItemController } from './controllers/order-item.controller';
@@ -16,6 +17,7 @@ import { OrderService } from './services/order.service';
     TypeOrmModule.forFeature([Order, OrderItem]),
     CustomerModule,
     ProductModule,
+    ActivityLogModule,
   ],
   controllers: [OrderController, OrderItemController],
   providers: [

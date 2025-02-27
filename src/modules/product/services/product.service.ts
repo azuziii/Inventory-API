@@ -1,8 +1,11 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ActivityType } from 'src/modules/activity_log/enum/activity-types.enum';
+import { IActivityLog } from 'src/modules/activity_log/interface/activity-log.interface';
 import { FindManyOptions, FindOneOptions } from 'typeorm';
 import {
   CreateProductInput,
@@ -14,10 +17,22 @@ import { productRepository } from '../repositories/product.repository';
 
 @Injectable()
 export class ProductService implements IProduct {
-  constructor(private readonly productRepository: productRepository) {}
+  constructor(
+    private readonly productRepository: productRepository,
+    @Inject(IActivityLog) private readonly activityLogService: IActivityLog,
+  ) {}
 
-  createProduct(product: CreateProductInput): Promise<Product> {
-    return this.productRepository.save(product);
+  async createProduct(product: CreateProductInput): Promise<Product> {
+    const savedProduct = await this.productRepository.save(product);
+
+    await this.activityLogService.log({
+      entity_id: savedProduct.id,
+      new_data: JSON.stringify(savedProduct),
+      table_name: this.productRepository.metadata.name,
+      type: ActivityType.Created,
+    });
+
+    return savedProduct;
   }
 
   bulkCreate(products: CreateProductInput[]) {
@@ -82,13 +97,32 @@ export class ProductService implements IProduct {
       throw new BadRequestException('No fields provided for update');
     }
 
-    Object.assign(product, input);
-    const savedProduct = await this.productRepository.save(product);
+    const savedProduct = await this.productRepository.save({
+      ...product,
+      ...input,
+    });
+
+    await this.activityLogService.log({
+      entity_id: savedProduct.id,
+      old_data: JSON.stringify(product),
+      new_data: JSON.stringify(savedProduct),
+      table_name: this.productRepository.metadata.name,
+      type: ActivityType.Updated,
+    });
 
     return savedProduct;
   }
 
   async deleteProduct(id: string): Promise<void> {
+    const product = await this.productRepository.findOne({ where: { id } });
+
+    await this.activityLogService.log({
+      entity_id: id,
+      old_data: JSON.stringify(product || {}),
+      table_name: this.productRepository.metadata.name,
+      type: ActivityType.Deleted,
+    });
+
     await this.productRepository.delete(id);
   }
 
