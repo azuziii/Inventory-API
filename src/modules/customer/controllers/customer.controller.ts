@@ -23,6 +23,11 @@ import { CustomerService } from '../services/customer.service';
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
 
+  @Post('bulk')
+  bulkCreate(@Body() input: CreateCustomerInput[]) {
+    return this.customerService.bulkCreate(input);
+  }
+
   @Post()
   async createCustomer(
     @Body(CustomerExistsPipe, CustomerIceExistsPipe) input: CreateCustomerInput,

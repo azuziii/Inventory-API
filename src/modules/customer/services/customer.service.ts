@@ -16,8 +16,16 @@ import { CustomerRepository } from '../repositories/customer.repository';
 export class CustomerService implements ICustomer {
   constructor(private readonly customerRepository: CustomerRepository) {}
 
-  async createCustomer(customer: CreateCustomerInput): Promise<Customer> {
+  createCustomer(customer: CreateCustomerInput): Promise<Customer> {
     return this.customerRepository.save(customer);
+  }
+
+  bulkCreate(products: CreateCustomerInput[]) {
+    return Promise.all(
+      products.map((p) => {
+        this.customerRepository.save(p);
+      }),
+    );
   }
 
   find(options?: FindManyOptions<Customer>): Promise<Customer[]> {
