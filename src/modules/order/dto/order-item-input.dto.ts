@@ -24,3 +24,18 @@ export class UpdateOrderItem extends PartialType(CreateOrderItemInput) {
   @IsUUID()
   id!: string;
 }
+
+export class CreateOrderItemInputBulk {
+  @IsNotEmpty()
+  product!: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ value }) => {
+    return Number(value);
+  })
+  quantity!: number;
+
+  @IsNotEmpty()
+  order!: Order;
+}
