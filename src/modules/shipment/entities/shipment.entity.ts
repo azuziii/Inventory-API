@@ -10,7 +10,7 @@ import {
 import { carEnum, DestinationEnum } from '../enum/shipment.enum';
 import { ShipmentItem } from './shipment-item.entity';
 
-@Entity('sipment')
+@Entity('shipment')
 export class Shipment {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
