@@ -11,7 +11,11 @@ import {
 import { plainToInstance } from 'class-transformer';
 import { GetCustomerByIdPipe } from 'src/modules/customer/pipes/get-customer-by-id/get-customer-by-id.pipe';
 import { ApiResponse } from 'src/shared/dto/api-response.dto';
-import { CreateOrderInput, UpdateOrderInput } from '../dto/order-input.dto';
+import {
+  CreateOrderInput,
+  CreateOrderInputBulk,
+  UpdateOrderInput,
+} from '../dto/order-input.dto';
 import { OrderOutput } from '../dto/order-output.dto';
 import { OrderCdnExistsPipe } from '../pipes/cdn_exists/cdn_exists.pipe';
 import { OrderService } from '../services/order.service';
@@ -19,6 +23,11 @@ import { OrderService } from '../services/order.service';
 @Controller('orders')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
+
+  @Post('bulk')
+  bulkCreate(@Body() input: CreateOrderInputBulk[]) {
+    return this.orderService.bulkCreate(input);
+  }
 
   @Post()
   async createOrder(
