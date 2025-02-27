@@ -1,22 +1,59 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { FindManyOptions, FindOneOptions } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ICustomer } from 'src/modules/customer/interfaces/customer.interface';
+import { IOrderItem } from 'src/modules/order/interfaces/order-item.interface';
+import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import {
   CreateShipmentInput,
+  CreateShipmentInputBulk,
+  GetCdnInput,
   UpdateShipmentInput,
 } from '../dto/shipment-input';
 import { Shipment } from '../entities/shipment.entity';
-import { ShipmentRepository } from '../repositories/shipment.repository';
+import { IShipmentItem } from '../interfaces/shipment-item.interface';
+import { IShipment } from '../interfaces/shipment.interface';
 
 @Injectable()
-export class ShipmentService {
-  constructor(private readonly shipmentRepository: ShipmentRepository) {}
+export class ShipmentService implements IShipment {
+  constructor(
+    @InjectRepository(Shipment)
+    private readonly shipmentRepository: Repository<Shipment>,
+    @Inject(IShipmentItem) private readonly shipmentItemService: IShipmentItem,
+    @Inject(IOrderItem) private readonly orderItemService: IOrderItem,
+    @Inject(ICustomer) private readonly customerService: ICustomer,
+  ) {}
 
   createShipment(shipment: CreateShipmentInput): Promise<Shipment> {
     return this.shipmentRepository.save(shipment);
+  }
+
+  async bulkCreate(shipments: CreateShipmentInputBulk[]) {
+    for (let i = 0; i < shipments.length; i++) {
+      const shipment = shipments[i]!;
+      const customer = await this.customerService.findOne({
+        where: { name: shipment.customer },
+      });
+
+      const savedShipment = await this.shipmentRepository.save({
+        ...{
+          bon: shipment.bon,
+          date: shipment.date,
+          destination: shipment.destination,
+          travels: shipment.travels,
+          type: shipment.type,
+        },
+        customer,
+      } as CreateShipmentInput);
+
+      await this.shipmentItemService.createShipmentItemBulk(
+        shipment.items.map((x) => ({ ...x, shipment: savedShipment })),
+      );
+    }
   }
 
   find(options?: FindManyOptions<Shipment>): Promise<Shipment[]> {
@@ -29,9 +66,15 @@ export class ShipmentService {
 
   listShipments(): Promise<[Shipment[], number]> {
     return this.shipmentRepository.findAndCount({
+      order: {
+        date: 'DESC',
+        bon: 'DESC',
+      },
       relations: {
         customer: true,
-        shipments: true,
+        shipments: {
+          product: true,
+        },
       },
     });
   }
@@ -81,5 +124,53 @@ export class ShipmentService {
 
   async deleteShipment(id: string): Promise<void> {
     await this.shipmentRepository.delete(id);
+  }
+
+  async getCdn({ quantity, product, customer }: GetCdnInput) {
+    const orders = await this.orderItemService.find({
+      relations: {
+        order: true,
+      },
+      where: {
+        product: {
+          id: product,
+        },
+        order: {
+          customer: {
+            id: customer,
+          },
+        },
+      },
+      order: {
+        order: {
+          date: 'ASC',
+        },
+      },
+    });
+    let calculatedCdns = [];
+    for (let order of orders) {
+      if (order.quantity <= quantity) {
+        calculatedCdns.push({
+          cdn: order.order.cdn,
+          quantity: order.quantity,
+          product,
+        });
+        quantity -= order.quantity;
+      } else if (order.quantity > quantity) {
+        calculatedCdns.push({
+          cdn: order.order.cdn,
+          quantity: quantity,
+          product,
+        });
+        quantity -= quantity;
+      }
+      if (quantity == 0) {
+        break;
+      }
+    }
+    if (!calculatedCdns.length) {
+      throw new BadRequestException('Nothing to calculate');
+    }
+    return calculatedCdns;
   }
 }
