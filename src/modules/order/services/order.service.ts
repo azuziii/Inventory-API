@@ -1,19 +1,56 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { FindManyOptions, FindOneOptions } from 'typeorm';
-import { CreateOrderInput, UpdateOrderInput } from '../dto/order-input.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ICustomer } from 'src/modules/customer/interfaces/customer.interface';
+import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
+import {
+  CreateOrderInput,
+  CreateOrderInputBulk,
+  UpdateOrderInput,
+} from '../dto/order-input.dto';
 import { Order } from '../entities/order.entity';
-import { OrderRepository } from '../repositories/order.repository';
+import { IOrderItem } from '../interfaces/order-item.interface';
 
 @Injectable()
 export class OrderService {
-  constructor(private readonly orderRepository: OrderRepository) {}
+  constructor(
+    @InjectRepository(Order)
+    private readonly orderRepository: Repository<Order>,
+    @Inject(ICustomer) private readonly customerService: ICustomer,
+    @Inject(IOrderItem) private readonly orderItemService: IOrderItem,
+  ) {}
 
   createOrder(order: CreateOrderInput): Promise<Order> {
     return this.orderRepository.save(order);
+  }
+
+  async bulkCreate(shipments: CreateOrderInputBulk[]) {
+    for (let i = 0; i < shipments.length; i++) {
+      const order = shipments[i]!;
+      const customer = await this.customerService.findOne({
+        where: { name: order.customer },
+      });
+
+      const savedShipment = await this.orderRepository.save({
+        ...({
+          customer,
+          cdn: order.cdn,
+          date: order.date,
+        } as CreateOrderInput),
+      });
+
+      await this.orderItemService.createOrderItemBulk(
+        order.orders!.map((x) => ({
+          ...x,
+          shipment: savedShipment,
+          iid: savedShipment.id,
+        })),
+      );
+    }
   }
 
   find(options?: FindManyOptions<Order>): Promise<Order[]> {
@@ -29,6 +66,9 @@ export class OrderService {
       relations: {
         customer: true,
         orders: true,
+      },
+      order: {
+        date: 'DESC',
       },
     });
   }
