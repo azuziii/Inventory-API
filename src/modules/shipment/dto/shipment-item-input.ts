@@ -36,3 +36,22 @@ export class UpdateShipmentitemInput extends PartialType(
   @IsUUID()
   id?: string;
 }
+
+export class CreateShipmentItemInputBulk {
+  @IsNotEmpty()
+  product!: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ value }) => {
+    return Number(value);
+  })
+  quantity?: number;
+
+  @IsOptional()
+  @IsString()
+  cdn?: string;
+
+  @IsNotEmpty()
+  shipment!: Shipment;
+}
