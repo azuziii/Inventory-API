@@ -22,6 +22,11 @@ import { ProductService } from '../services/product.service';
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
+  @Post('bulk')
+  bulkCreate(@Body() input: CreateProductInput[]) {
+    return this.productService.bulkCreate(input);
+  }
+
   @Post()
   async createProduct(
     @Body(ProductExistsPipe) input: CreateProductInput,

@@ -20,6 +20,14 @@ export class ProductService implements IProduct {
     return this.productRepository.save(product);
   }
 
+  bulkCreate(products: CreateProductInput[]) {
+    return Promise.all(
+      products.map((p) => {
+        this.productRepository.save(p);
+      }),
+    );
+  }
+
   find(options?: FindManyOptions<Product>): Promise<Product[]> {
     return this.productRepository.find(options);
   }
