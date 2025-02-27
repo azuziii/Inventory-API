@@ -13,6 +13,8 @@ import { GetCustomerByIdPipe } from 'src/modules/customer/pipes/get-customer-by-
 import { ApiResponse } from 'src/shared/dto/api-response.dto';
 import {
   CreateShipmentInput,
+  CreateShipmentInputBulk,
+  GetCdnInput,
   UpdateShipmentInput,
 } from '../dto/shipment-input';
 import { ShipmentOutput } from '../dto/shipment-output';
@@ -21,6 +23,20 @@ import { ShipmentService } from '../services/shipment.service';
 @Controller('shipments')
 export class ShipmentController {
   constructor(private readonly shipmentService: ShipmentService) {}
+
+  @Post('bulk')
+  bulkCreate(@Body() input: CreateShipmentInputBulk[]) {
+    return this.shipmentService.bulkCreate(input);
+  }
+
+  @Post('calc')
+  async getCdn(@Body() input: GetCdnInput) {
+    const result = await this.shipmentService.getCdn(input);
+    return {
+      data: result,
+      meta: {},
+    };
+  }
 
   @Post()
   async createShipment(
