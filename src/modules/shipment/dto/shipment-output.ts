@@ -1,7 +1,8 @@
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
+import { CustomerOutput } from 'src/modules/customer/dto/customer-output.dto';
 import { Customer } from 'src/modules/customer/entities/customer.entity';
-import { ShipmentItem } from '../entities/shipment-item.entity';
 import { carEnum, DestinationEnum } from '../enum/shipment.enum';
+import { ShipmentItemOutput } from './shipment-item-output';
 
 export class ShipmentOutput {
   @Expose()
@@ -23,8 +24,10 @@ export class ShipmentOutput {
   destination!: DestinationEnum;
 
   @Expose()
+  @Type(() => CustomerOutput)
   customer!: Customer;
 
   @Expose()
-  shipments!: ShipmentItem[];
+  @Type(() => ShipmentItemOutput)
+  shipments!: ShipmentItemOutput[];
 }
