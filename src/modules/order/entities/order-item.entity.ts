@@ -19,6 +19,9 @@ export class OrderItem {
   @Column({ type: 'int', default: 0 })
   quantity!: number;
 
+  @Column({ type: 'int', default: 0 })
+  quantity_left!: number;
+
   @ManyToOne(() => Product, { eager: true })
   @JoinColumn()
   product!: Product;
