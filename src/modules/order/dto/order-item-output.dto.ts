@@ -12,6 +12,9 @@ export class OrderItemOutput {
   quantity!: number;
 
   @Expose()
+  quantity_left!: number;
+
+  @Expose()
   remaining!: number;
 
   @Expose()
